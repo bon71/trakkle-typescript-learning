@@ -1,7 +1,8 @@
 {
-  "name": "tsapp-react",
+  "name": "trakkle-typescript-learning",
   "version": "0.1.0",
   "private": true,
+  "description": "Trakkle TypeScript Learning - A comprehensive TypeScript learning platform",
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
