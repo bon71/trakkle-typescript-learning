@@ -1,14 +1,18 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { 
   Menu, 
   X, 
   User, 
   Settings, 
   LogOut, 
+  LayoutDashboard,
+  BookOpen,
+  Calendar,
   BarChart3,
   Crown,
-  ChevronDown
+  ChevronDown,
+  Trophy
 } from 'lucide-react'
 import { useI18n } from '../hooks/useI18n'
 import { Button } from './ui/Button'
@@ -42,6 +46,7 @@ export function AppHeader({
 }: AppHeaderProps) {
   const { t } = useI18n()
   const navigate = useNavigate()
+  const location = useLocation()
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
 
@@ -63,6 +68,13 @@ export function AppHeader({
     navigate('/progress')
   }
 
+  const navigation = [
+    { name: t('header.dashboard'), href: '/dashboard', icon: LayoutDashboard },
+    { name: t('navigation.learn'), href: '/learn', icon: BookOpen },
+    { name: t('navigation.progress'), href: '/progress', icon: BarChart3 },
+    { name: t('navigation.settings'), href: '/settings', icon: Settings },
+  ]
+
   const getUserInitials = (name: string) => {
     return name
       .split(' ')
@@ -82,13 +94,39 @@ export function AppHeader({
               to="/"
               className="flex items-center gap-2 text-xl font-semibold text-foreground hover:text-primary transition-colors"
             >
-              <span className="text-2xl">💻</span>
-              <span className="hidden sm:inline">TypeScript Learning</span>
+              <img
+                src="/logo.png"
+                alt="Trakkle TypeScript"
+                className="w-8 h-8 rounded-lg object-contain"
+              />
+              <span className="hidden sm:inline">Trakkle TypeScript</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div id="desktop-nav" className="hidden md:flex items-center gap-4">
+          <div id="desktop-nav" className="hidden md:flex items-center space-x-8">
+            {navigation.map((item) => {
+              const isActive = location.pathname === item.href
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  )}
+                >
+                  <item.icon className="w-4 h-4" />
+                  {item.name}
+                </Link>
+              )
+            })}
+          </div>
+
+          {/* Right side - Theme/Language + Auth */}
+          <div id="header-right-section" className="hidden md:flex items-center gap-4">
             <ThemeSwitcher />
             <LanguageSwitcher />
             
@@ -120,6 +158,10 @@ export function AppHeader({
                       <span className="text-sm font-medium text-foreground">
                         {user.name}
                       </span>
+                      <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                        <Trophy className="w-3 h-3" />
+                        <span>0日</span>
+                      </Badge>
                       {user.isPremium && (
                         <Badge variant="default" size="sm" className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
                           <Crown className="w-3 h-3 mr-1" />
@@ -144,20 +186,22 @@ export function AppHeader({
                   {showUserMenu && (
                     <div id="user-menu-dropdown" className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-md shadow-lg z-50">
                       <div id="user-menu-dropdown-content" className="py-1">
-                        <button
-                          onClick={handleDashboard}
+                        <Link
+                          to="/dashboard"
+                          onClick={() => setShowUserMenu(false)}
                           className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-accent flex items-center gap-2"
                         >
-                          <BarChart3 className="w-4 h-4" />
+                          <LayoutDashboard className="w-4 h-4" />
                           {t('header.dashboard')}
-                        </button>
-                        <button
-                          onClick={handleOpenSettings}
+                        </Link>
+                        <Link
+                          to="/settings"
+                          onClick={() => setShowUserMenu(false)}
                           className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-accent flex items-center gap-2"
                         >
                           <Settings className="w-4 h-4" />
                           {t('common.settings')}
-                        </button>
+                        </Link>
                         <hr className="my-1 border-border" />
                         <button
                           onClick={handleLogout}
@@ -216,9 +260,34 @@ export function AppHeader({
         {showMobileMenu && (
           <div id="mobile-menu" className="md:hidden border-t border-border bg-card">
             <div id="mobile-menu-content" className="py-4 space-y-2">
-              <div id="mobile-menu-switchers" className="flex items-center justify-between px-4 py-2">
-                <ThemeSwitcher />
-                <LanguageSwitcher />
+              {/* Mobile Navigation */}
+              <div id="mobile-nav-links" className="space-y-1">
+                {navigation.map((item) => {
+                  const isActive = location.pathname === item.href
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      onClick={() => setShowMobileMenu(false)}
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                      )}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      {item.name}
+                    </Link>
+                  )
+                })}
+              </div>
+
+              <div id="mobile-menu-toggles" className="border-t border-border pt-4">
+                <div className="flex items-center justify-between px-4 py-2">
+                  <ThemeSwitcher />
+                  <LanguageSwitcher />
+                </div>
               </div>
               
               {loading ? (
@@ -229,8 +298,8 @@ export function AppHeader({
                   </span>
                 </div>
               ) : user ? (
-                <div id="user-info-mobile" className="space-y-2">
-                  <div id="user-info-mobile-container" className="flex items-center gap-3 px-4 py-2">
+                <div id="mobile-user-section" className="border-t border-border pt-4 space-y-2">
+                  <div id="mobile-user-info" className="flex items-center gap-3 px-4 py-2">
                     {user.photoURL ? (
                       <img 
                         src={user.photoURL} 
@@ -242,11 +311,15 @@ export function AppHeader({
                         {getUserInitials(user.name)}
                       </div>
                     )}
-                    <div id="user-name-email-mobile">
+                    <div id="mobile-user-details">
                       <div id="user-name-badge-container-mobile" className="flex items-center gap-2">
                         <span className="text-sm font-medium text-foreground">
                           {user.name}
                         </span>
+                        <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                          <Trophy className="w-3 h-3" />
+                          <span>0日</span>
+                        </Badge>
                         {user.isPremium && (
                           <Badge variant="default" size="sm" className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
                             <Crown className="w-3 h-3 mr-1" />
@@ -259,21 +332,6 @@ export function AppHeader({
                   </div>
                   
                   <button
-                    onClick={handleDashboard}
-                    className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-accent flex items-center gap-2"
-                  >
-                    <BarChart3 className="w-4 h-4" />
-                    {t('header.dashboard')}
-                  </button>
-                  <button
-                    onClick={handleOpenSettings}
-                    className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-accent flex items-center gap-2"
-                  >
-                    <Settings className="w-4 h-4" />
-                    {t('common.settings')}
-                  </button>
-                  <hr className="my-1 border-border" />
-                  <button
                     onClick={handleLogout}
                     className="w-full px-4 py-2 text-left text-sm text-destructive hover:bg-accent flex items-center gap-2"
                   >
@@ -282,7 +340,7 @@ export function AppHeader({
                   </button>
                 </div>
               ) : (
-                <div id="login-signup-buttons-mobile" className="space-y-2 px-4">
+                <div id="mobile-auth-buttons" className="border-t border-border pt-4 space-y-2 px-4">
                   <Button
                     variant="ghost"
                     size="sm"
